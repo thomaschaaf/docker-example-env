@@ -1,0 +1,54 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: docker-example-env
+  namespace: docker-example-env
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: docker-example-env
+    spec:
+      containers:
+        - name: docker-example-env
+          image: 'thomaschaaf/docker-example-env:latest'
+          ports:
+            - containerPort: 3000
+          env:
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: MY_POD_SERVICE_ACCOUNT
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.serviceAccountName
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: docker-example-env-service
+  namespace: docker-example-env
+  labels:
+    name: docker-example-env-service
+spec:
+  ports:
+    - port: 80
+      targetPort: 3000
+      protocol: TCP
+  selector:
+    app: docker-example-env
+  type: LoadBalancer
